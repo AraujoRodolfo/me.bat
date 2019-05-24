@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>me.bat</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
+
+</head>
+<body>
+	<div class="container-fluid">
+		<div class="row topo">
+			<div class="col-12 center">
+				<h1>me.bat<span id="tempo"></span></h1>
+			</div>
+		</div>	
+	<div class="row">
+		<div class="col-10 offset-1 bar mt-3">
+			<div class="progresso"></div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-12 area">
+		</div>		
+	</div>
+	<div class="row mt-2">
+		<div class="col-6">
+			<button class="btn btn-primary btn-block" id="play">Play</button>			
+		</div>
+		<div class="col-6">			
+			<button class="btn btn-success btn-block" id="top">Ranking </button>
+		</div>
+		<div class="col-6 offset-3">			
+			<button class="btn btn-primary btn-block" id="pontos">Pontuação: </button>			
+		</div>
+		
+
+	</div>
+
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script>
+
+window.addEventListener("batterystatus", onBatteryStatus, false);
+
+function onBatteryStatus(status) {
+	var bateria = "Level: " + status.level + " isPlugged: " + status.isPlugged;
+    console.log(bateria);
+	alert(bateria);
+}
+		var cliques=0;
+		var largura = $('.area').width();
+		var altura = $('.area').height();
+		var tempo=0;
+		var play = false;
+		var nome= "";
+		var duracao = 1500; //tempo bola parada
+		
+		var operacao = "A"; //"A"=Adicionar; "E"=Editar
+		var indice_selecionado = -1; //Índice do item selecionado na lista
+		var tbJogadores = localStorage.getItem("tbJogadores");// Recupera os dados armazenados
+		tbJogadores = JSON.parse(tbJogadores); // Converte string para objeto
+		if(tbJogadores == null) { tbJogadores = []; adicionar();}
+		
+		function adicionar(){
+			var jogador = JSON.stringify({			
+				Nome     : nome,
+				Pontos : cliques
+			});
+			tbJogadores.push(jogador);
+			localStorage.setItem("tbJogadores", JSON.stringify(tbJogadores));			
+			return true;
+		}		
+		function Listar(){
+			$("#Ranking").html("");
+			$("#Ranking").html(
+				"<thead>"+
+				"   <tr>"+				
+				"   <th>Nome</th>"+
+				"   <th>Pontos</th>"+				
+				"   </tr>"+
+				"</thead>"+
+				"<tbody>"+
+				"</tbody>"
+				);
+			for(var i in tbJogadores){
+				var j = JSON.parse(tbJogadores[i]);
+				$("#Ranking tbody").append("<tr>");				
+				$("#Ranking tbody").append("<td>"+j.Nome+"</td>");
+				$("#Ranking tbody").append("<td>"+j.Pontos+"</td>");				
+				$("#Ranking tbody").append("</tr>");
+			}
+
+		}
+		function Ranking(){								
+			var SortArr = function () {
+				var arr = [];
+				for (var key in tbJogadores) {
+					var j = JSON.parse(tbJogadores[key]);
+					arr.push({ Nome: j.Nome, Pontos: j.Pontos });
+				}
+				arr.sort(function (a, b) {
+					var intA = parseInt(a.Pontos),
+						intB = parseInt(b.Pontos);
+					if (intA > intB)
+						return -1;
+					if (intA < intB)
+						return 1;
+					return 0;
+				});
+				return arr;
+			};
+			
+			return SortArr();
+			// var xpto = SortArr();
+			// var msg = "";
+			// for (var i = 0; i < xpto.length; i++) {
+			// 	msg += (i+1)+"º) " + xpto[i].Nome + " => " + xpto[i].Pontos + "\n";
+			// }
+			//return msg;
+		}
+		//var xpto = Ranking();
+		//console.log(xpto);		
+
+		function recorde(){
+			var bateu = false;									
+			var xpto = Ranking();
+			var msg = "";
+			var total = (xpto.length >=5) ? 5 : xpto.length;
+			for (var i = 0; i < total; i++) {
+				//mostrar os nomes e posições:
+				//msg += (i+1)+"º) " + xpto[i].Nome + " => " + xpto[i].Pontos + "\n";			
+				if(cliques > xpto[i].Pontos){
+					bateu = true;
+				}
+			}			
+			if(bateu){
+				nome = prompt("Qual o seu nome?");									
+					adicionar();				
+			}else{
+				alert("Você não bateu nenhum record. Tente outra vez");
+			}
+			
+			// nomes = localStorage.nomes+',';
+			// localStorage.nomes = nomes+'{"nome":"'+nome+'","pontos":'+cliques+'}';			
+			//'nome:'+nome+',pontos:'+cliques
+			// console.log(nomes);						
+		}
+		function Top(total){
+			var xpto = Ranking();
+			var msg = "___________Ranking___________\r\n";
+			var total = (xpto.length >=total) ? total : xpto.length;
+			for (var i = 0; i < total; i++) {
+				//mostrar os nomes e posições:
+				msg += (i+1)+"º) " + xpto[i].Nome + " => " + xpto[i].Pontos + "\r\n";							
+			}
+			alert(msg);
+		}
+		/*
+		function Editar(nome){
+			tbJogadores[indice_selecionado] = JSON.stringify({					
+					Nome     : nome,					
+					Pontos    : cliques
+				});
+			localStorage.setItem("tbJogadores", JSON.stringify(tbJogadores));			
+			operacao = "A"; 
+			return true;
+		}
+		function Excluir(){
+			tbJogadores.splice(indice_selecionado, 1);
+			localStorage.setItem("tbJogadores", JSON.stringify(tbJogadores));
+			alert("Registro excluído.");
+		}
+		*/
+		
+		setInterval(function(){
+			console.log(duracao);
+			if(play!=true){
+				tempo=0;
+				$('#top').show();
+			}else{
+				tempo++;
+				$('#pontos').show();
+				
+			}
+			if(tempo == 30){
+				tempo = 0;
+				alert("Seu total foi de: "+cliques);
+				recorde();
+				cliques = 0;
+				$('.area').empty();
+				$('#play').show();
+				$('#pontos').hide();
+				$('#tempo').hide();
+				play=false;
+				$('#top').show();
+				$('.progresso').css('width',"1%");
+			}else{
+				$('#tempo').html("Tempo: "+(30-tempo));			
+				
+			}												
+					
+		},1000);
+
+		
+		var a = setInterval(function(){						
+			var randWidth = random = Math.ceil(Math.random() * (largura-50));
+			var randHeight = random = Math.floor(Math.random() * (altura-50));
+			$('.ponto').css('margin-top', randHeight);
+			$('.ponto').css('margin-left', randWidth);		
+
+		},duracao);
+		
+		$(document).on('click','#top' ,function(){	
+			Top(5);
+		});
+
+		$(document).on('click','.ponto' ,function(){				
+			cliques++;						
+			$('.progresso').css('width',cliques+"%");
+			if(cliques %10==0){
+				//tempo-=1;
+				duracao-=300;
+				clearInterval(a);
+				a = setInterval(function(){						
+					var randWidth = random = Math.ceil(Math.random() * (largura-50));
+					var randHeight = random = Math.floor(Math.random() * (altura-50));
+					$('.ponto').css('margin-top', randHeight);
+					$('.ponto').css('margin-left', randWidth);		
+
+				},duracao);				
+			}
+			$('#pontos').html('Pontuação: '+cliques);
+			
+		});
+
+		$(document).on('click','#play' ,function(){
+				
+				play=true;
+				clearInterval(a);
+				duracao = 2000;
+				a = setInterval(function(){						
+					var randWidth = random = Math.ceil(Math.random() * (largura-50));
+					var randHeight = random = Math.floor(Math.random() * (altura-50));
+					$('.ponto').css('margin-top', randHeight);
+					$('.ponto').css('margin-left', randWidth);		
+
+				},duracao);
+
+				var item = '<div class="ponto"></div>' ;
+				$('.area').html(item);
+				$(this).hide();
+				$('#pontos').show();				
+				$('#play').hide();
+				$('#pontos').show();
+				$('#tempo').show();
+				$('#top').hide();
+		});							
+		
+	</script>
+</body>
+</html>
